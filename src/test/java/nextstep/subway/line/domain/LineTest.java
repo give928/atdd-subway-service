@@ -61,9 +61,17 @@ class LineTest {
     @Test
     void removeLineStation() {
         // given
+        Line line = new Line("분당선", "red");
+        Station upStation = new Station("상행역");
+        Station middleStation = new Station("중간역");
+        Station downStation = new Station("하행역");
+        line.getSections().add(new Section(line, upStation, middleStation, 10));
+        line.getSections().add(new Section(line, middleStation, downStation, 10));
 
         // when
+        line.removeLineStation(downStation);
 
         // then
+        assertThat(line.getStations()).containsExactly(upStation, middleStation);
     }
 }

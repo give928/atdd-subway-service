@@ -71,9 +71,20 @@ class SectionsTest {
     @Test
     void remove() {
         // given
+        Line line = new Line("분당선", "red");
+        Station upStation = new Station("상행역");
+        Station middleStation = new Station("중간역");
+        Station downStation = new Station("하행역");
+        Sections sections = new Sections();
+        sections.add(line, upStation, middleStation, 10);
+        sections.add(line, middleStation, downStation, 10);
 
         // when
+        sections.remove(downStation);
 
         // then
+        assertThat(sections.get()).hasSize(1);
+        assertThat(sections.get().get(0).getUpStation()).isEqualTo(upStation);
+        assertThat(sections.get().get(0).getDownStation()).isEqualTo(middleStation);
     }
 }

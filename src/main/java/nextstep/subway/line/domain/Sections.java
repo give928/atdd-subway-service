@@ -96,4 +96,28 @@ public class Sections {
 
         return stations;
     }
+
+    public void remove(Station station) {
+        if (values.size() <= 1) {
+            throw new IllegalArgumentException("구간이 한 개 뿐인 경우 삭제할 수 없습니다.");
+        }
+
+        Optional<Section> upLineStation = values.stream()
+                .filter(it -> it.getUpStation() == station)
+                .findFirst();
+        Optional<Section> downLineStation = values.stream()
+                .filter(it -> it.getDownStation() == station)
+                .findFirst();
+
+        if (upLineStation.isPresent() && downLineStation.isPresent()) {
+            Line newLine = downLineStation.get().getLine();
+            Station newUpStation = downLineStation.get().getUpStation();
+            Station newDownStation = upLineStation.get().getDownStation();
+            int newDistance = upLineStation.get().getDistance() + downLineStation.get().getDistance();
+            values.add(new Section(newLine, newUpStation, newDownStation, newDistance));
+        }
+
+        upLineStation.ifPresent(values::remove);
+        downLineStation.ifPresent(values::remove);
+    }
 }

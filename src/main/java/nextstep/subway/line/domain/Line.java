@@ -37,6 +37,10 @@ public class Line extends BaseEntity {
         this.color = color;
     }
 
+    public void addLineStation(Station upStation, Station downStation, int distance) {
+        sections.add(this, upStation, downStation, distance);
+    }
+
     public Long getId() {
         return id;
     }

@@ -45,10 +45,16 @@ class LineTest {
     @Test
     void addLineStation() {
         // given
+        Station upStation = new Station("상행역");
+        Station middleStation = new Station("중간역");
+        Station downStation = new Station("하행역");
+        Line line = new Line("분당선", "red", upStation, middleStation, 10);
 
         // when
+        line.addLineStation(middleStation, downStation, 10);
 
         // then
+        assertThat(line.getStations()).containsExactly(upStation, middleStation, downStation);
     }
 
     @DisplayName("지하철 노선에 구간 삭제")

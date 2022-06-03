@@ -4,6 +4,8 @@ import nextstep.subway.station.domain.Station;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SectionsTest {
@@ -30,10 +32,19 @@ class SectionsTest {
     @Test
     void getStations() {
         // given
+        Line line = new Line("분당선", "red");
+        Station upStation = new Station("상행역");
+        Station middleStation = new Station("중간역");
+        Station downStation = new Station("하행역");
+        Sections sections = new Sections();
+        sections.add(new Section(line, upStation, middleStation, 10));
+        sections.add(new Section(line, middleStation, downStation, 10));
 
         // when
+        List<Station> stations = sections.getStations();
 
         // then
+        assertThat(stations).containsExactly(upStation, middleStation, downStation);
     }
 
     @DisplayName("구간 추가")

@@ -31,10 +31,14 @@ class LineTest {
     @Test
     void update() {
         // given
+        Line line = new Line("분당선", "red");
 
         // when
+        line.update("신분당선", "green");
 
         // then
+        assertThat(line.getName()).isEqualTo("신분당선");
+        assertThat(line.getColor()).isEqualTo("green");
     }
 
     @DisplayName("지하철 노선에 구간 추가")

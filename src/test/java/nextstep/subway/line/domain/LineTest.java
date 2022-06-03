@@ -27,20 +27,6 @@ class LineTest {
         assertThat(stations).containsExactly(upStation, middleStation, downStation);
     }
 
-    @DisplayName("지하철 노선 수정")
-    @Test
-    void update() {
-        // given
-        Line line = new Line("분당선", "red");
-
-        // when
-        line.update("신분당선", "green");
-
-        // then
-        assertThat(line.getName()).isEqualTo("신분당선");
-        assertThat(line.getColor()).isEqualTo("green");
-    }
-
     @DisplayName("지하철 노선에 구간 추가")
     @Test
     void addLineStation() {
@@ -51,7 +37,7 @@ class LineTest {
         Line line = new Line("분당선", "red", upStation, middleStation, 10);
 
         // when
-        line.addLineStation(middleStation, downStation, 10);
+        line.addSection(new Section(line, middleStation, downStation, 10));
 
         // then
         assertThat(line.getStations()).containsExactly(upStation, middleStation, downStation);
@@ -69,7 +55,7 @@ class LineTest {
         line.getSections().add(new Section(line, middleStation, downStation, 10));
 
         // when
-        line.removeLineStation(downStation);
+        line.removeSection(downStation);
 
         // then
         assertThat(line.getStations()).containsExactly(upStation, middleStation);

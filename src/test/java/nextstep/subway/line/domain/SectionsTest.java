@@ -18,8 +18,8 @@ class SectionsTest {
         Station middleStation = new Station("중간역");
         Station downStation = new Station("하행역");
         Sections sections = new Sections();
-        sections.add(line, upStation, middleStation, 10);
-        sections.add(line, middleStation, downStation, 10);
+        sections.add(new Section(line, upStation, middleStation, 10));
+        sections.add(new Section(line, middleStation, downStation, 10));
 
         // when
         Station findUpStation = sections.findUpStation();
@@ -37,8 +37,8 @@ class SectionsTest {
         Station middleStation = new Station("중간역");
         Station downStation = new Station("하행역");
         Sections sections = new Sections();
-        sections.add(line, upStation, middleStation, 10);
-        sections.add(line, middleStation, downStation, 10);
+        sections.add(new Section(line, upStation, middleStation, 10));
+        sections.add(new Section(line, middleStation, downStation, 10));
 
         // when
         List<Station> stations = sections.getStations();
@@ -51,20 +51,17 @@ class SectionsTest {
     @Test
     void add() {
         // given
-        Line line = new Line("분당선", "red");
-        Station upStation = new Station("상행역");
-        Station downStation = new Station("하행역");
-        int distance = 10;
         Sections sections = new Sections();
+        Section section = new Section(new Line("분당선", "red"), new Station("상행역"), new Station("하행역"), 10);
 
         // when
-        sections.add(line, upStation, downStation, distance);
+        sections.add(section);
 
         // then
         assertThat(sections.get()).hasSize(1);
-        assertThat(sections.get().get(0).getUpStation()).isEqualTo(upStation);
-        assertThat(sections.get().get(0).getDownStation()).isEqualTo(downStation);
-        assertThat(sections.get().get(0).getDistance()).isEqualTo(distance);
+        assertThat(sections.get().get(0).getUpStation()).isEqualTo(section.getUpStation());
+        assertThat(sections.get().get(0).getDownStation()).isEqualTo(section.getDownStation());
+        assertThat(sections.get().get(0).getDistance()).isEqualTo(section.getDistance());
     }
 
     @DisplayName("구간 삭제")
@@ -76,8 +73,8 @@ class SectionsTest {
         Station middleStation = new Station("중간역");
         Station downStation = new Station("하행역");
         Sections sections = new Sections();
-        sections.add(line, upStation, middleStation, 10);
-        sections.add(line, middleStation, downStation, 10);
+        sections.add(new Section(line, upStation, middleStation, 10));
+        sections.add(new Section(line, middleStation, downStation, 10));
 
         // when
         sections.remove(downStation);

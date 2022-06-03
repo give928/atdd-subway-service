@@ -19,39 +19,39 @@ public class Sections {
         return values;
     }
 
-    public void add(Line line, Station upStation, Station downStation, int distance) {
+    public void add(Section section) {
         List<Station> stations = getStations();
-        boolean isUpStationExisted = stations.stream().anyMatch(it -> it == upStation);
-        boolean isDownStationExisted = stations.stream().anyMatch(it -> it == downStation);
+        boolean isUpStationExisted = stations.stream().anyMatch(it -> it == section.getUpStation());
+        boolean isDownStationExisted = stations.stream().anyMatch(it -> it == section.getDownStation());
 
         if (isUpStationExisted && isDownStationExisted) {
             throw new IllegalArgumentException("이미 등록된 구간 입니다.");
         }
 
-        if (!stations.isEmpty() && stations.stream().noneMatch(it -> it == upStation) &&
-                stations.stream().noneMatch(it -> it == downStation)) {
+        if (!stations.isEmpty() && stations.stream().noneMatch(it -> it == section.getUpStation()) &&
+                stations.stream().noneMatch(it -> it == section.getDownStation())) {
             throw new IllegalArgumentException("등록할 수 없는 구간 입니다.");
         }
 
         if (stations.isEmpty()) {
-            values.add(new Section(line, upStation, downStation, distance));
+            values.add(section);
             return;
         }
 
         if (isUpStationExisted) {
             values.stream()
-                    .filter(it -> it.getUpStation() == upStation)
+                    .filter(it -> it.getUpStation() == section.getUpStation())
                     .findFirst()
-                    .ifPresent(it -> it.updateUpStation(downStation, distance));
+                    .ifPresent(it -> it.updateUpStation(section.getDownStation(), section.getDistance()));
 
-            values.add(new Section(line, upStation, downStation, distance));
+            values.add(section);
         } else if (isDownStationExisted) {
             values.stream()
-                    .filter(it -> it.getDownStation() == downStation)
+                    .filter(it -> it.getDownStation() == section.getDownStation())
                     .findFirst()
-                    .ifPresent(it -> it.updateDownStation(upStation, distance));
+                    .ifPresent(it -> it.updateDownStation(section.getUpStation(), section.getDistance()));
 
-            values.add(new Section(line, upStation, downStation, distance));
+            values.add(section);
         } else {
             throw new IllegalArgumentException("등록할 수 없는 구간 입니다.");
         }

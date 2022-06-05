@@ -99,7 +99,7 @@ class PathAcceptanceTest extends AcceptanceTest {
      * When 최단 경로를 조회하면
      * Then 최단 경로 조회됨
      */
-    @DisplayName("최단 경로를 조회힌다.")
+    @DisplayName("최단 경로를 조회한다.")
     @Test
     void findPath() {
         // given
@@ -118,7 +118,7 @@ class PathAcceptanceTest extends AcceptanceTest {
      * When 같은 출발역과 도착역의 최단 경로를 조회하면
      * Then 최단 경로 조회 실패됨
      */
-    @DisplayName("같은 출발역과 도착역의 최단 경로를 조회힌다.")
+    @DisplayName("같은 출발역과 도착역의 최단 경로를 조회한다.")
     @Test
     void findPathWithSameStations() {
         // given
@@ -135,7 +135,7 @@ class PathAcceptanceTest extends AcceptanceTest {
      * When 연결되지 않은 출발역과 도착역의 최단 경로를 조회하면
      * Then 최단 경로 조회 실패됨
      */
-    @DisplayName("연결되지 않은 출발역과 도착역의 최단 경로를 조회힌다.")
+    @DisplayName("연결되지 않은 출발역과 도착역의 최단 경로를 조회한다.")
     @Test
     void findPathWithNotLinkedStations() {
         // given

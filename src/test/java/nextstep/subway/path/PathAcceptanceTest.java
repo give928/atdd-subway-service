@@ -1,18 +1,38 @@
 package nextstep.subway.path;
 
+import io.restassured.RestAssured;
+import io.restassured.response.ExtractableResponse;
+import io.restassured.response.Response;
 import nextstep.subway.AcceptanceTest;
 import nextstep.subway.line.acceptance.LineAcceptanceTest;
 import nextstep.subway.line.acceptance.LineSectionAcceptanceTest;
 import nextstep.subway.line.dto.LineRequest;
 import nextstep.subway.line.dto.LineResponse;
+import nextstep.subway.path.dto.PathResponse;
+import nextstep.subway.path.ui.PathController;
 import nextstep.subway.station.StationAcceptanceTest;
 import nextstep.subway.station.dto.StationResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @DisplayName("지하철 경로 조회")
 class PathAcceptanceTest extends AcceptanceTest {
+    @MockBean
+    private PathController pathController;
+
     private LineResponse 일호선;
     private LineResponse 이호선;
     private LineResponse 삼호선;
@@ -83,10 +103,15 @@ class PathAcceptanceTest extends AcceptanceTest {
     @Test
     void findPath() {
         // given
+        when(pathController.findPath(양재시민의숲역.getId(), 선릉역.getId())).thenReturn(
+                ResponseEntity.ok().body(new PathResponse(Arrays.asList(양재시민의숲역, 양재역, 매봉역, 도곡역, 한티역, 선릉역), 10)));
 
         // when
+        ExtractableResponse<Response> response = 최단_경로_조회_요청(양재시민의숲역, 선릉역);
 
         // then
+        최단_경로_조회됨(response);
+        최단_경로_지하철역_순서_정렬됨(response, Arrays.asList(양재시민의숲역, 양재역, 매봉역, 도곡역, 한티역, 선릉역));
     }
 
     /**
@@ -97,10 +122,13 @@ class PathAcceptanceTest extends AcceptanceTest {
     @Test
     void findPathWithSameStations() {
         // given
+        when(pathController.findPath(강남역.getId(), 강남역.getId())).thenReturn(ResponseEntity.badRequest().build());
 
         // when
+        ExtractableResponse<Response> response = 최단_경로_조회_요청(강남역, 강남역);
 
         // then
+        최단_경로_조회_실패됨(response);
     }
 
     /**
@@ -111,10 +139,13 @@ class PathAcceptanceTest extends AcceptanceTest {
     @Test
     void findPathWithNotLinkedStations() {
         // given
+        when(pathController.findPath(서울역.getId(), 강남역.getId())).thenReturn(ResponseEntity.badRequest().build());
 
         // when
+        ExtractableResponse<Response> response = 최단_경로_조회_요청(서울역, 강남역);
 
         // then
+        최단_경로_조회_실패됨(response);
     }
 
     /**
@@ -125,9 +156,43 @@ class PathAcceptanceTest extends AcceptanceTest {
     @Test
     void findPathWithNotExistsStations() {
         // given
+        StationResponse 임시역 = new StationResponse(9999L, "임시역", LocalDateTime.now(), LocalDateTime.now());
+        when(pathController.findPath(강남역.getId(), 임시역.getId())).thenReturn(ResponseEntity.badRequest().build());
 
         // when
+        ExtractableResponse<Response> response = 최단_경로_조회_요청(강남역, 임시역);
 
         // then
+        최단_경로_조회_실패됨(response);
+    }
+
+    public static ExtractableResponse<Response> 최단_경로_조회_요청(StationResponse source, StationResponse target) {
+        return RestAssured
+                .given().log().all()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .when().get("/paths?source={source}&target={target}", source.getId(), target.getId())
+                .then().log().all()
+                .extract();
+    }
+
+    private void 최단_경로_조회됨(ExtractableResponse<Response> response) {
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    public static void 최단_경로_지하철역_순서_정렬됨(ExtractableResponse<Response> response, List<StationResponse> expectedStations) {
+        PathResponse path = response.as(PathResponse.class);
+        List<Long> stationIds = path.getStations().stream()
+                .map(StationResponse::getId)
+                .collect(Collectors.toList());
+
+        List<Long> expectedStationIds = expectedStations.stream()
+                .map(StationResponse::getId)
+                .collect(Collectors.toList());
+
+        assertThat(stationIds).containsExactlyElementsOf(expectedStationIds);
+    }
+
+    private void 최단_경로_조회_실패됨(ExtractableResponse<Response> response) {
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     }
 }

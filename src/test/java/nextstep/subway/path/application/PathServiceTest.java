@@ -1,13 +1,39 @@
 package nextstep.subway.path.application;
 
 import nextstep.subway.line.domain.Line;
+import nextstep.subway.line.domain.LineRepository;
 import nextstep.subway.line.domain.Section;
+import nextstep.subway.path.dto.PathResponse;
 import nextstep.subway.station.domain.Station;
+import nextstep.subway.station.domain.StationRepository;
+import nextstep.subway.station.dto.StationResponse;
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
 class PathServiceTest {
+    @InjectMocks
+    private PathService pathService;
+    @Mock
+    private StationRepository stationRepository;
+    @Mock
+    private LineRepository lineRepository;
+
     private Station 시청역;
     private Station 서울역;
     private Station 교대역;
@@ -78,39 +104,66 @@ class PathServiceTest {
     @Test
     void findPath() {
         // given
+        when(stationRepository.findById(양재시민의숲역.getId())).thenReturn(Optional.of(양재시민의숲역));
+        when(stationRepository.findById(선릉역.getId())).thenReturn(Optional.of(선릉역));
+        when(lineRepository.findAll()).thenReturn(Arrays.asList(일호선, 이호선, 삼호선, 신분당선, 분당선));
 
         // when
+        PathResponse pathResponse = pathService.findPath(양재시민의숲역.getId(), 선릉역.getId());
 
         // then
+        최단_경로_확인됨(pathResponse, Arrays.asList(양재시민의숲역, 양재역, 매봉역, 도곡역, 한티역, 선릉역));
     }
 
     @DisplayName("같은 출발역과 도착역의 최단 경로를 조회한다.")
     @Test
     void findPathWithSameStations() {
-        // given
-
         // when
+        ThrowableAssert.ThrowingCallable throwingCallable = () -> pathService.findPath(강남역.getId(), 강남역.getId());
 
         // then
+        assertThatThrownBy(throwingCallable).isInstanceOf(IllegalArgumentException.class);
     }
 
     @DisplayName("연결되지 않은 출발역과 도착역의 최단 경로를 조회한다.")
     @Test
     void findPathWithNotLinkedStations() {
         // given
+        when(stationRepository.findById(강남역.getId())).thenReturn(Optional.of(강남역));
+        when(stationRepository.findById(서울역.getId())).thenReturn(Optional.of(서울역));
+        when(lineRepository.findAll()).thenReturn(Arrays.asList(일호선, 이호선, 삼호선, 신분당선, 분당선));
 
         // when
+        ThrowableAssert.ThrowingCallable throwingCallable = () -> pathService.findPath(서울역.getId(), 강남역.getId());
 
         // then
+        assertThatThrownBy(throwingCallable).isInstanceOf(IllegalStateException.class);
     }
 
     @DisplayName("존재하지 않는 출발역이나 도착역의 최단 경로를 조회한다.")
     @Test
     void findPathWithNotExistsStations() {
         // given
+        when(stationRepository.findById(서울역.getId())).thenReturn(Optional.of(서울역));
 
         // when
+        ThrowableAssert.ThrowingCallable throwingCallable = () -> pathService.findPath(서울역.getId(), 9999L);
 
         // then
+        assertThatThrownBy(throwingCallable).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private void 최단_경로_확인됨(PathResponse pathResponse, List<Station> expectedStations) {
+        assertThat(pathResponse.getDistance()).isEqualTo(36);
+
+        List<Long> stationIds = pathResponse.getStations().stream()
+                .map(StationResponse::getId)
+                .collect(Collectors.toList());
+
+        List<Long> expectedStationIds = expectedStations.stream()
+                .map(Station::getId)
+                .collect(Collectors.toList());
+
+        assertThat(stationIds).containsExactlyElementsOf(expectedStationIds);
     }
 }

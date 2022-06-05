@@ -9,16 +9,13 @@ import nextstep.subway.line.acceptance.LineSectionAcceptanceTest;
 import nextstep.subway.line.dto.LineRequest;
 import nextstep.subway.line.dto.LineResponse;
 import nextstep.subway.path.dto.PathResponse;
-import nextstep.subway.path.ui.PathController;
 import nextstep.subway.station.acceptance.StationAcceptanceTest;
 import nextstep.subway.station.dto.StationResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -26,13 +23,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 @DisplayName("지하철 경로 조회")
 class PathAcceptanceTest extends AcceptanceTest {
-    @MockBean
-    private PathController pathController;
-
     private LineResponse 일호선;
     private LineResponse 이호선;
     private LineResponse 삼호선;
@@ -102,10 +95,6 @@ class PathAcceptanceTest extends AcceptanceTest {
     @DisplayName("최단 경로를 조회한다.")
     @Test
     void findPath() {
-        // given
-        when(pathController.findPath(양재시민의숲역.getId(), 선릉역.getId())).thenReturn(
-                ResponseEntity.ok().body(new PathResponse(Arrays.asList(양재시민의숲역, 양재역, 매봉역, 도곡역, 한티역, 선릉역), 10)));
-
         // when
         ExtractableResponse<Response> response = 최단_경로_조회_요청(양재시민의숲역, 선릉역);
 
@@ -121,9 +110,6 @@ class PathAcceptanceTest extends AcceptanceTest {
     @DisplayName("같은 출발역과 도착역의 최단 경로를 조회한다.")
     @Test
     void findPathWithSameStations() {
-        // given
-        when(pathController.findPath(강남역.getId(), 강남역.getId())).thenReturn(ResponseEntity.badRequest().build());
-
         // when
         ExtractableResponse<Response> response = 최단_경로_조회_요청(강남역, 강남역);
 
@@ -138,9 +124,6 @@ class PathAcceptanceTest extends AcceptanceTest {
     @DisplayName("연결되지 않은 출발역과 도착역의 최단 경로를 조회한다.")
     @Test
     void findPathWithNotLinkedStations() {
-        // given
-        when(pathController.findPath(서울역.getId(), 강남역.getId())).thenReturn(ResponseEntity.badRequest().build());
-
         // when
         ExtractableResponse<Response> response = 최단_경로_조회_요청(서울역, 강남역);
 
@@ -157,7 +140,6 @@ class PathAcceptanceTest extends AcceptanceTest {
     void findPathWithNotExistsStations() {
         // given
         StationResponse 임시역 = new StationResponse(9999L, "임시역", LocalDateTime.now(), LocalDateTime.now());
-        when(pathController.findPath(강남역.getId(), 임시역.getId())).thenReturn(ResponseEntity.badRequest().build());
 
         // when
         ExtractableResponse<Response> response = 최단_경로_조회_요청(강남역, 임시역);

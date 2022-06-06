@@ -7,9 +7,13 @@ import nextstep.subway.AcceptanceTest;
 import nextstep.subway.auth.dto.TokenRequest;
 import nextstep.subway.member.acceptance.MemberAcceptanceTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,23 +22,32 @@ class AuthAcceptanceTest extends AcceptanceTest {
     @Test
     void myInfoWithBearerAuth() {
         // given
-        MemberAcceptanceTest.회원_생성을_요청(MemberAcceptanceTest.EMAIL, MemberAcceptanceTest.PASSWORD, MemberAcceptanceTest.AGE);
+        MemberAcceptanceTest.회원_생성을_요청(MemberAcceptanceTest.EMAIL, MemberAcceptanceTest.PASSWORD, 20);
 
         // when
         ExtractableResponse<Response> response = 로그인_요청(MemberAcceptanceTest.EMAIL, MemberAcceptanceTest.PASSWORD);
 
         // then
-        로그인_됨(response);
+        로그인_성공(response);
     }
 
     @DisplayName("Bearer Auth 로그인 실패")
-    @Test
-    void myInfoWithBadBearerAuth() {
-        // given
-
-        // when
-
-        // then
+    @TestFactory
+    Stream<DynamicTest> myInfoWithBadBearerAuth() {
+        return Stream.of(
+                DynamicTest.dynamicTest("email 불일치", () -> {
+                    // when
+                    ExtractableResponse<Response> response = 로그인_요청("test@test.com", MemberAcceptanceTest.PASSWORD);
+                    // then
+                    로그인_실패(response);
+                }),
+                DynamicTest.dynamicTest("password 불일치", () -> {
+                    // when
+                    ExtractableResponse<Response> response = 로그인_요청(MemberAcceptanceTest.EMAIL, "test");
+                    // then
+                    로그인_실패(response);
+                })
+        );
     }
 
     @DisplayName("Bearer Auth 유효하지 않은 토큰")
@@ -58,8 +71,12 @@ class AuthAcceptanceTest extends AcceptanceTest {
                 .extract();
     }
 
-    private void 로그인_됨(ExtractableResponse<Response> response) {
+    private void 로그인_성공(ExtractableResponse<Response> response) {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(response.jsonPath().getString("accessToken")).isNotEmpty();
+    }
+
+    private void 로그인_실패(ExtractableResponse<Response> response) {
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     }
 }

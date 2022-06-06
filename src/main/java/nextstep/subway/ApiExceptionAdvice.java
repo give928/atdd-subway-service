@@ -1,5 +1,6 @@
 package nextstep.subway;
 
+import nextstep.subway.auth.application.AuthorizationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -33,6 +34,12 @@ public class ApiExceptionAdvice {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
         log.error("handleDataIntegrityViolationException", e);
+        return ResponseEntity.badRequest().build();
+    }
+
+    @ExceptionHandler(AuthorizationException.class)
+    public ResponseEntity<String> handleAuthorizationException(AuthorizationException e) {
+        log.error("handleAuthorizationException", e);
         return ResponseEntity.badRequest().build();
     }
 

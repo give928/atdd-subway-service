@@ -54,10 +54,13 @@ class AuthAcceptanceTest extends AcceptanceTest {
     @Test
     void myInfoWithWrongBearerAuth() {
         // given
+        String 유효하지_않은_토큰 = "test-token";
 
         // when
+        ExtractableResponse<Response> response = 내_정보_조회_요청(유효하지_않은_토큰);
 
         // then
+        내_정보_조회_실패(response);
     }
 
     private ExtractableResponse<Response> 로그인_요청(String email, String password) {
@@ -78,5 +81,18 @@ class AuthAcceptanceTest extends AcceptanceTest {
 
     private void 로그인_실패(ExtractableResponse<Response> response) {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+    }
+
+    private ExtractableResponse<Response> 내_정보_조회_요청(String accessToken) {
+        return RestAssured
+                .given().log().all()
+                .auth().oauth2(accessToken)
+                .when().get("/members/me")
+                .then().log().all()
+                .extract();
+    }
+
+    private void 내_정보_조회_실패(ExtractableResponse<Response> response) {
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 }

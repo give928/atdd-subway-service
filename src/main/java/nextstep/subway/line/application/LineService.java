@@ -28,16 +28,19 @@ public class LineService {
 
     @Transactional
     public LineResponse saveLine(LineRequest request) {
-        Station upStation = stationService.findStation(request.getUpStationId());
-        Station downStation = stationService.findStation(request.getDownStationId());
+        Station upStation = stationService.findStationById(request.getUpStationId());
+        Station downStation = stationService.findStationById(request.getDownStationId());
         Line persistLine = lineRepository.save(
                 new Line(request.getName(), request.getColor(), upStation, downStation, request.getDistance()));
         return LineResponse.of(persistLine);
     }
 
+    public List<Line> findAll() {
+        return lineRepository.findAll();
+    }
+
     public List<LineResponse> findLines() {
-        List<Line> persistLines = lineRepository.findAll();
-        return persistLines.stream()
+        return findAll().stream()
                 .map(LineResponse::of)
                 .collect(Collectors.toList());
     }
@@ -61,15 +64,15 @@ public class LineService {
     @Transactional
     public void addLineStation(Long lineId, SectionRequest request) {
         Line line = findLineById(lineId);
-        Station upStation = stationService.findStation(request.getUpStationId());
-        Station downStation = stationService.findStation(request.getDownStationId());
+        Station upStation = stationService.findStationById(request.getUpStationId());
+        Station downStation = stationService.findStationById(request.getDownStationId());
         line.addSection(new Section(line, upStation, downStation, request.getDistance()));
     }
 
     @Transactional
     public void removeLineStation(Long lineId, Long stationId) {
         Line line = findLineById(lineId);
-        Station station = stationService.findStation(stationId);
+        Station station = stationService.findStationById(stationId);
         line.removeSection(station);
     }
 

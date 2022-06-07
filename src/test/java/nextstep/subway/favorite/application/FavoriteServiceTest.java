@@ -52,9 +52,9 @@ class FavoriteServiceTest {
     @Test
     void createFavorite() {
         // given
-        given(memberService.findById(member.getId())).willReturn(member);
-        given(stationService.findStation(source.getId())).willReturn(source);
-        given(stationService.findStation(target.getId())).willReturn(target);
+        given(memberService.findMemberById(member.getId())).willReturn(member);
+        given(stationService.findStationById(source.getId())).willReturn(source);
+        given(stationService.findStationById(target.getId())).willReturn(target);
         given(favoriteRepository.save(any())).willReturn(favorite);
 
         // when

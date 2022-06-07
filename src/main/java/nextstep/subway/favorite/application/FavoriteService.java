@@ -30,9 +30,9 @@ public class FavoriteService {
     }
 
     public FavoriteResponse createFavorite(Long memberId, FavoriteRequest favoriteRequest) {
-        Member member = memberService.findById(memberId);
-        Station source = stationService.findStation(favoriteRequest.getSource());
-        Station target = stationService.findStation(favoriteRequest.getTarget());
+        Member member = memberService.findMemberById(memberId);
+        Station source = stationService.findStationById(favoriteRequest.getSource());
+        Station target = stationService.findStationById(favoriteRequest.getTarget());
         Favorite favorite = favoriteRepository.save(new Favorite(member, source, target));
         return FavoriteResponse.of(favorite);
     }

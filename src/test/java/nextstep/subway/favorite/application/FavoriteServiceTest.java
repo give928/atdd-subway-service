@@ -4,10 +4,12 @@ import nextstep.subway.favorite.domain.Favorite;
 import nextstep.subway.favorite.domain.FavoriteRepository;
 import nextstep.subway.favorite.dto.FavoriteRequest;
 import nextstep.subway.favorite.dto.FavoriteResponse;
+import nextstep.subway.favorite.exception.FavoriteNotFoundException;
 import nextstep.subway.member.application.MemberService;
 import nextstep.subway.member.domain.Member;
 import nextstep.subway.station.application.StationService;
 import nextstep.subway.station.domain.Station;
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,11 +18,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -52,13 +56,14 @@ class FavoriteServiceTest {
     @Test
     void createFavorite() {
         // given
+        FavoriteRequest favoriteRequest = new FavoriteRequest(source.getId(), target.getId());
         given(memberService.findMemberById(member.getId())).willReturn(member);
-        given(stationService.findStationById(source.getId())).willReturn(source);
-        given(stationService.findStationById(target.getId())).willReturn(target);
+        given(stationService.findStationsByIdIn(
+                Arrays.asList(favoriteRequest.getSource(), favoriteRequest.getTarget()))).willReturn(Arrays.asList(source, target));
         given(favoriteRepository.save(any())).willReturn(favorite);
 
         // when
-        FavoriteResponse favoriteResponse = favoriteService.createFavorite(member.getId(), new FavoriteRequest(source.getId(), target.getId()));
+        FavoriteResponse favoriteResponse = favoriteService.createFavorite(member.getId(), favoriteRequest);
 
         // then
         assertThat(favoriteResponse.getSource().getId()).isEqualTo(source.getId());
@@ -84,13 +89,29 @@ class FavoriteServiceTest {
     @Test
     void deleteFavorite() {
         // given
-        given(favoriteRepository.findById(favorite.getId())).willReturn(Optional.of(favorite));
+        given(favoriteRepository.findByIdAndMemberId(favorite.getId(), favorite.getMember().getId()))
+                .willReturn(Optional.of(favorite));
 
         // when
-        favoriteService.deleteFavorite(favorite.getMember().getId(), favorite.getId());
+        favoriteService.deleteFavorite(favorite.getId(), favorite.getMember().getId());
 
         // then
         List<FavoriteResponse> favorites = favoriteService.findMemberFavorites(favorite.getMember().getId());
         assertThat(favorites).isEmpty();
+    }
+
+    @DisplayName("소유자가 아닌 경우 즐겨찾기 삭제 실패")
+    @Test
+    void deleteFavoriteNotOwner() {
+        // given
+        Long memberId = 9999L;
+        given(favoriteRepository.findByIdAndMemberId(favorite.getId(), memberId)).willReturn(Optional.empty());
+
+        // when
+        ThrowableAssert.ThrowingCallable throwingCallable = () ->
+                favoriteService.deleteFavorite(favorite.getId(), memberId);
+
+        // then
+        assertThatThrownBy(throwingCallable).isInstanceOf(FavoriteNotFoundException.class);
     }
 }

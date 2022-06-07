@@ -12,6 +12,7 @@ import nextstep.subway.station.domain.Station;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,10 +29,10 @@ public class LineService {
 
     @Transactional
     public LineResponse saveLine(LineRequest request) {
-        Station upStation = stationService.findStationById(request.getUpStationId());
-        Station downStation = stationService.findStationById(request.getDownStationId());
-        Line persistLine = lineRepository.save(
-                new Line(request.getName(), request.getColor(), upStation, downStation, request.getDistance()));
+        List<Station> stations = stationService.findStationsByIdIn(Arrays.asList(request.getUpStationId(), request.getDownStationId()));
+        Station upStation = stations.get(0);
+        Station downStation = stations.get(1);
+        Line persistLine = lineRepository.save(new Line(request.getName(), request.getColor(), upStation, downStation, request.getDistance()));
         return LineResponse.of(persistLine);
     }
 
@@ -64,8 +65,9 @@ public class LineService {
     @Transactional
     public void addLineStation(Long lineId, SectionRequest request) {
         Line line = findLineById(lineId);
-        Station upStation = stationService.findStationById(request.getUpStationId());
-        Station downStation = stationService.findStationById(request.getDownStationId());
+        List<Station> stations = stationService.findStationsByIdIn(Arrays.asList(request.getUpStationId(), request.getDownStationId()));
+        Station upStation = stations.get(0);
+        Station downStation = stations.get(1);
         line.addSection(new Section(line, upStation, downStation, request.getDistance()));
     }
 

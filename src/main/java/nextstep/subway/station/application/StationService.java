@@ -8,6 +8,7 @@ import nextstep.subway.station.exception.StationNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,5 +43,15 @@ public class StationService {
     public Station findStationById(Long id) {
         return stationRepository.findById(id)
                 .orElseThrow(StationNotFoundException::new);
+    }
+
+    public List<Station> findStationsByIdIn(List<Long> ids) {
+        List<Station> stations = stationRepository.findByIdIn(ids);
+        if (stations.size() != ids.size()) {
+            throw new StationNotFoundException();
+        }
+        return stations.stream()
+                .sorted(Comparator.comparingInt(o -> ids.indexOf(o.getId())))
+                .collect(Collectors.toList());
     }
 }

@@ -1,6 +1,5 @@
 package nextstep.subway.favorite.application;
 
-import nextstep.subway.auth.exception.AuthorizationException;
 import nextstep.subway.favorite.domain.Favorite;
 import nextstep.subway.favorite.domain.FavoriteRepository;
 import nextstep.subway.favorite.dto.FavoriteRequest;
@@ -11,14 +10,15 @@ import nextstep.subway.member.domain.Member;
 import nextstep.subway.station.application.StationService;
 import nextstep.subway.station.domain.Station;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class FavoriteService {
-    private static final String ERROR_MESSAGE_NOT_OWNER = "즐겨찾기의 소유자만 삭제할 수 있습니다.";
-
     private final FavoriteRepository favoriteRepository;
     private final MemberService memberService;
     private final StationService stationService;
@@ -29,11 +29,13 @@ public class FavoriteService {
         this.stationService = stationService;
     }
 
+    @Transactional
     public FavoriteResponse createFavorite(Long memberId, FavoriteRequest favoriteRequest) {
         Member member = memberService.findMemberById(memberId);
-        Station source = stationService.findStationById(favoriteRequest.getSource());
-        Station target = stationService.findStationById(favoriteRequest.getTarget());
-        Favorite favorite = favoriteRepository.save(new Favorite(member, source, target));
+        List<Station> stations = stationService.findStationsByIdIn(Arrays.asList(favoriteRequest.getSource(), favoriteRequest.getTarget()));
+        Station sourceStation = stations.get(0);
+        Station targetStation = stations.get(1);
+        Favorite favorite = favoriteRepository.save(new Favorite(member, sourceStation, targetStation));
         return FavoriteResponse.of(favorite);
     }
 
@@ -43,12 +45,10 @@ public class FavoriteService {
                 .collect(Collectors.toList());
     }
 
-    public void deleteFavorite(Long memberId, Long id) {
-        Favorite favorite = favoriteRepository.findById(id)
+    @Transactional
+    public void deleteFavorite(Long id, Long memberId) {
+        Favorite favorite = favoriteRepository.findByIdAndMemberId(id, memberId)
                 .orElseThrow(FavoriteNotFoundException::new);
-        if (!favorite.isOwner(memberId)) {
-            throw new AuthorizationException(ERROR_MESSAGE_NOT_OWNER);
-        }
         favoriteRepository.delete(favorite);
     }
 }

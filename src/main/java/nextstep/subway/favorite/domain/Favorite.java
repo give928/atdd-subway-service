@@ -8,7 +8,7 @@ import java.util.Objects;
 
 @Entity
 public class Favorite {
-    private static final String ERROR_MESSAGE_SAME_SOURCE_TARGET = "출발역과 도착역을 다른역으로 즐겨찾기를 등록해주세요.";
+    private static final String ERROR_MESSAGE_SAME_SOURCE_TARGET = "동일한 역으로 즐겨찾기를 등록할 수 없습니다.";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

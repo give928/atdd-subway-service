@@ -18,6 +18,19 @@ class FavoriteTest {
         member = new Member(1L, "test1@test.com", "password", 20);
     }
 
+    @DisplayName("출발역 또는 도착역이 없으면 즐겨찾기를 생성할 수 없다.")
+    @Test
+    void nullStations() {
+        // given
+        Station station = new Station(1L, "교대역");
+
+        // when
+        ThrowableAssert.ThrowingCallable throwingCallable = () -> new Favorite(member, station, null);
+
+        // then
+        assertThatThrownBy(throwingCallable).isInstanceOf(IllegalArgumentException.class);
+    }
+
     @DisplayName("출발역과 도착역이 같으면 즐겨찾기를 생성할 수 없다.")
     @Test
     void sameSourceTarget() {

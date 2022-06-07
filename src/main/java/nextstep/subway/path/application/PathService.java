@@ -9,6 +9,7 @@ import nextstep.subway.station.domain.Station;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,8 +30,9 @@ public class PathService {
 
     public PathResponse findPath(Long source, Long target) {
         validateStations(source, target);
-        Station sourceStation = stationService.findStationById(source);
-        Station targetStation = stationService.findStationById(target);
+        List<Station> stations = stationService.findStationsByIdIn(Arrays.asList(source, target));
+        Station sourceStation = stations.get(0);
+        Station targetStation = stations.get(1);
         List<Line> lines = lineService.findAll();
         return PathResponse.of(PathFinder.find(lines, sourceStation, targetStation));
     }

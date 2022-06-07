@@ -67,6 +67,9 @@ class FavoriteAcceptanceTest extends AcceptanceTest {
      * When 즐겨찾기 생성을 요청
      * Then 즐겨찾기 생성됨
      *
+     * When 출발역과 도착역을 동일한 역으로 즐겨찾기 생성을 요청
+     * Then 즐겨찾기 생성 안됨
+     *
      * When 즐겨찾기 목록 조회 요청
      * Then 즐겨찾기 목록 조회됨
      *
@@ -80,6 +83,11 @@ class FavoriteAcceptanceTest extends AcceptanceTest {
         ExtractableResponse<Response> createResponse = 즐겨찾기_생성_요청(교대역, 선릉역);
         // then
         즐겨찾기_생성됨(createResponse);
+
+        // when
+        ExtractableResponse<Response> failCreateResponse = 즐겨찾기_생성_요청(강남역, 강남역);
+        // then
+        즐겨찾기_생성_안됨(failCreateResponse);
 
         // when
         ExtractableResponse<Response> findResponse = 즐겨찾기_목록_조회_요청();
@@ -106,6 +114,10 @@ class FavoriteAcceptanceTest extends AcceptanceTest {
     private void 즐겨찾기_생성됨(ExtractableResponse<Response> response) {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(response.header("Location")).isEqualTo("/favorites/1");
+    }
+
+    private void 즐겨찾기_생성_안됨(ExtractableResponse<Response> response) {
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     }
 
     private ExtractableResponse<Response> 즐겨찾기_목록_조회_요청() {

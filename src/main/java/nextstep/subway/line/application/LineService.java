@@ -27,8 +27,8 @@ public class LineService {
 
     @Transactional
     public LineResponse saveLine(LineRequest request) {
-        Station upStation = stationService.findById(request.getUpStationId());
-        Station downStation = stationService.findById(request.getDownStationId());
+        Station upStation = stationService.findStation(request.getUpStationId());
+        Station downStation = stationService.findStation(request.getDownStationId());
         Line persistLine = lineRepository.save(
                 new Line(request.getName(), request.getColor(), upStation, downStation, request.getDistance()));
         return LineResponse.of(persistLine);
@@ -60,15 +60,15 @@ public class LineService {
     @Transactional
     public void addLineStation(Long lineId, SectionRequest request) {
         Line line = findLineById(lineId);
-        Station upStation = stationService.findStationById(request.getUpStationId());
-        Station downStation = stationService.findStationById(request.getDownStationId());
+        Station upStation = stationService.findStation(request.getUpStationId());
+        Station downStation = stationService.findStation(request.getDownStationId());
         line.addSection(new Section(line, upStation, downStation, request.getDistance()));
     }
 
     @Transactional
     public void removeLineStation(Long lineId, Long stationId) {
         Line line = findLineById(lineId);
-        Station station = stationService.findStationById(stationId);
+        Station station = stationService.findStation(stationId);
         line.removeSection(station);
     }
 

@@ -3,9 +3,11 @@ package nextstep.subway.auth.application;
 import nextstep.subway.auth.domain.LoginMember;
 import nextstep.subway.auth.dto.TokenRequest;
 import nextstep.subway.auth.dto.TokenResponse;
+import nextstep.subway.auth.exception.AuthorizationException;
 import nextstep.subway.auth.infrastructure.JwtTokenProvider;
 import nextstep.subway.member.domain.Member;
 import nextstep.subway.member.domain.MemberRepository;
+import nextstep.subway.member.exception.MemberNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +36,7 @@ public class AuthService {
         }
 
         String email = jwtTokenProvider.getPayload(credentials);
-        Member member = memberRepository.findByEmail(email).orElseThrow(RuntimeException::new);
+        Member member = memberRepository.findByEmail(email).orElseThrow(MemberNotFoundException::new);
         return new LoginMember(member.getId(), member.getEmail(), member.getAge());
     }
 }

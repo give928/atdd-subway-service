@@ -80,7 +80,7 @@ public class AuthAcceptanceTest extends AcceptanceTest {
     }
 
     private void 로그인_실패(ExtractableResponse<Response> response) {
-        assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
     }
 
     private ExtractableResponse<Response> 내_정보_조회_요청(String accessToken) {

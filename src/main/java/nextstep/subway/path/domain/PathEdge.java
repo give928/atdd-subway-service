@@ -18,12 +18,4 @@ public class PathEdge extends DefaultWeightedEdge {
     public int getExtraFare() {
         return extraFare;
     }
-
-    @Override
-    public String toString() {
-        return "PathEdge{" +
-                "extraFare=" + extraFare +
-                ", super=" + super.toString() +
-                '}';
-    }
 }

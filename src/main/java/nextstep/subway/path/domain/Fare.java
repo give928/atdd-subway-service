@@ -3,7 +3,7 @@ package nextstep.subway.path.domain;
 public class Fare {
     private final int value;
 
-    public Fare(int value) {
+    private Fare(int value) {
         this.value = value;
     }
 

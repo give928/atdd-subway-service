@@ -2,18 +2,17 @@ package nextstep.subway.path.domain;
 
 import nextstep.subway.station.domain.Station;
 import org.jgrapht.GraphPath;
-import org.jgrapht.graph.DefaultWeightedEdge;
 
 import java.util.List;
 
 public class Path {
-    private final GraphPath<Station, DefaultWeightedEdge> graphPath;
+    private final GraphPath<Station, PathEdge> graphPath;
 
-    private Path(GraphPath<Station, DefaultWeightedEdge> graphPath) {
+    private Path(GraphPath<Station, PathEdge> graphPath) {
         this.graphPath = graphPath;
     }
 
-    public static Path of(GraphPath<Station, DefaultWeightedEdge> graphPath) {
+    public static Path of(GraphPath<Station, PathEdge> graphPath) {
         return new Path(graphPath);
     }
 
@@ -23,5 +22,12 @@ public class Path {
 
     public int getDistance() {
         return (int) graphPath.getWeight();
+    }
+
+    public int getMaxExtraFare() {
+        return graphPath.getEdgeList().stream()
+                .mapToInt(PathEdge::getExtraFare)
+                .max()
+                .orElse(0);
     }
 }

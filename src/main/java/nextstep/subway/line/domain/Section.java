@@ -66,6 +66,10 @@ public class Section {
         return distance;
     }
 
+    public int getExtraFare() {
+        return line.getExtraFare();
+    }
+
     public boolean hasStation(Station station) {
         return upStation.equals(station) || downStation.equals(station);
     }

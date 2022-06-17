@@ -1,5 +1,6 @@
 package nextstep.subway.path.application;
 
+import nextstep.subway.auth.domain.LoginMember;
 import nextstep.subway.line.application.LineService;
 import nextstep.subway.line.domain.Line;
 import nextstep.subway.line.domain.Section;
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -81,45 +84,47 @@ class PathServiceTest {
         양재시민의숲역 = new Station(11L, "양재시민의숲역");
         한티역 = new Station(12L, "한티역");
 
-        일호선 = new Line(1L, "일호선", "bg-red-600");
+        일호선 = new Line(1L, "일호선", "bg-red-600", 100);
         일호선.addSection(new Section(시청역, 서울역, 10));
-        이호선 = new Line(2L, "이호선", "bg-red-600");
+        이호선 = new Line(2L, "이호선", "bg-red-600", 200);
         이호선.addSection(new Section(교대역, 강남역, 10));
         이호선.addSection(new Section(강남역, 역삼역, 10));
         이호선.addSection(new Section(역삼역, 선릉역, 10));
-        삼호선 = new Line(3L, "삼호선", "bg-red-600");
+        삼호선 = new Line(3L, "삼호선", "bg-red-600", 300);
         삼호선.addSection(new Section(교대역, 남부터미널역, 10));
         삼호선.addSection(new Section(남부터미널역, 양재역, 10));
         삼호선.addSection(new Section(양재역, 매봉역, 8));
         삼호선.addSection(new Section(매봉역, 도곡역, 7));
-        신분당선 = new Line(4L, "신분당선", "bg-red-600");
+        신분당선 = new Line(4L, "신분당선", "bg-red-600", 400);
         신분당선.addSection(new Section(강남역, 양재역, 10));
         신분당선.addSection(new Section(양재역, 양재시민의숲역, 10));
-        분당선 = new Line(5L, "분당선", "bg-red-600");
+        분당선 = new Line(5L, "분당선", "bg-red-600", 500);
         분당선.addSection(new Section(선릉역, 한티역, 6));
         분당선.addSection(new Section(한티역, 도곡역, 5));
     }
 
-    @DisplayName("최단 경로를 조회힌다.")
-    @Test
-    void findPath() {
+    @DisplayName("최단 경로, 거리, 로그인사용자 요금을 조회힌다.")
+    @ParameterizedTest(name = "{displayName} 로그인사용자나이={0}, 요금={1}")
+    @CsvSource(value = {", 2_350", "19, 2_350", "13, 1_600", "8, 1_000", "5, 0"})
+    void findPath(Integer age, int expectedFare) {
         // given
         List<Station> stations = Arrays.asList(양재시민의숲역, 선릉역);
         given(stationService.findStationsByIdIn(Arrays.asList(양재시민의숲역.getId(), 선릉역.getId()))).willReturn(stations);
         given(lineService.findAll()).willReturn(Arrays.asList(일호선, 이호선, 삼호선, 신분당선, 분당선));
+        LoginMember loginMember = new LoginMember(1L, "user@test.com", age);
 
         // when
-        PathResponse pathResponse = pathService.findPath(양재시민의숲역.getId(), 선릉역.getId());
+        PathResponse pathResponse = pathService.findPath(양재시민의숲역.getId(), 선릉역.getId(), loginMember);
 
         // then
-        최단_경로_확인됨(pathResponse, Arrays.asList(양재시민의숲역, 양재역, 매봉역, 도곡역, 한티역, 선릉역));
+        최단_경로_거리_요금_확인됨(pathResponse, Arrays.asList(양재시민의숲역, 양재역, 매봉역, 도곡역, 한티역, 선릉역), 36, expectedFare);
     }
 
     @DisplayName("같은 출발역과 도착역의 최단 경로를 조회한다.")
     @Test
     void findPathWithSameStations() {
         // when
-        ThrowableAssert.ThrowingCallable throwingCallable = () -> pathService.findPath(강남역.getId(), 강남역.getId());
+        ThrowableAssert.ThrowingCallable throwingCallable = () -> pathService.findPath(강남역.getId(), 강남역.getId(), new LoginMember());
 
         // then
         assertThatThrownBy(throwingCallable).isInstanceOf(IllegalArgumentException.class);
@@ -133,7 +138,7 @@ class PathServiceTest {
         given(lineService.findAll()).willReturn(Arrays.asList(일호선, 이호선, 삼호선, 신분당선, 분당선));
 
         // when
-        ThrowableAssert.ThrowingCallable throwingCallable = () -> pathService.findPath(서울역.getId(), 강남역.getId());
+        ThrowableAssert.ThrowingCallable throwingCallable = () -> pathService.findPath(서울역.getId(), 강남역.getId(), new LoginMember());
 
         // then
         assertThatThrownBy(throwingCallable).isInstanceOf(IllegalStateException.class);
@@ -146,14 +151,15 @@ class PathServiceTest {
         given(stationService.findStationsByIdIn(Arrays.asList(서울역.getId(), 9999L))).willThrow(StationNotFoundException.class);
 
         // when
-        ThrowableAssert.ThrowingCallable throwingCallable = () -> pathService.findPath(서울역.getId(), 9999L);
+        ThrowableAssert.ThrowingCallable throwingCallable = () -> pathService.findPath(서울역.getId(), 9999L, new LoginMember());
 
         // then
         assertThatThrownBy(throwingCallable).isInstanceOf(StationNotFoundException.class);
     }
 
-    private void 최단_경로_확인됨(PathResponse pathResponse, List<Station> expectedStations) {
-        assertThat(pathResponse.getDistance()).isEqualTo(36);
+    private void 최단_경로_거리_요금_확인됨(PathResponse pathResponse, List<Station> expectedStations, int expectedDistance, int expectedFare) {
+        assertThat(pathResponse.getDistance()).isEqualTo(expectedDistance);
+        assertThat(pathResponse.getFare()).isEqualTo(expectedFare);
 
         List<Long> stationIds = pathResponse.getStations().stream()
                 .map(StationResponse::getId)

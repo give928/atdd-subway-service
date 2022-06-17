@@ -91,6 +91,8 @@ class PathAcceptanceTest extends AcceptanceTest {
     /**
      * When 최단 경로를 조회하면
      * Then 최단 경로 조회됨
+     * And 총 거리도 함께 응답함
+     * And ** 지하철 이용 요금도 함께 응답함 **
      */
     @DisplayName("최단 경로를 조회한다.")
     @Test
@@ -101,6 +103,8 @@ class PathAcceptanceTest extends AcceptanceTest {
         // then
         최단_경로_조회됨(response);
         최단_경로_지하철역_순서_정렬됨(response, Arrays.asList(양재시민의숲역, 양재역, 매봉역, 도곡역, 한티역, 선릉역));
+        총_거리_응답됨(response, 36);
+        이용_요금_응답됨(response, 1_850);
     }
 
     /**
@@ -172,6 +176,16 @@ class PathAcceptanceTest extends AcceptanceTest {
                 .collect(Collectors.toList());
 
         assertThat(stationIds).containsExactlyElementsOf(expectedStationIds);
+    }
+
+    private void 총_거리_응답됨(ExtractableResponse<Response> response, int expectedDistance) {
+        PathResponse path = response.as(PathResponse.class);
+        assertThat(path.getDistance()).isEqualTo(expectedDistance);
+    }
+
+    private void 이용_요금_응답됨(ExtractableResponse<Response> response, int expectedFare) {
+        PathResponse path = response.as(PathResponse.class);
+        assertThat(path.getFare()).isEqualTo(expectedFare);
     }
 
     private void 최단_경로_조회_실패됨(ExtractableResponse<Response> response) {

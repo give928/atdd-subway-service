@@ -61,26 +61,26 @@ class PathFinderTest {
         양재시민의숲역 = new Station(11L, "양재시민의숲역");
         한티역 = new Station(12L, "한티역");
 
-        일호선 = new Line(1L, "일호선", "bg-red-600");
+        일호선 = new Line(1L, "일호선", "bg-red-600", 100);
         일호선.addSection(new Section(시청역, 서울역, 10));
-        이호선 = new Line(2L, "이호선", "bg-red-600");
+        이호선 = new Line(2L, "이호선", "bg-red-600", 200);
         이호선.addSection(new Section(교대역, 강남역, 10));
         이호선.addSection(new Section(강남역, 역삼역, 10));
         이호선.addSection(new Section(역삼역, 선릉역, 10));
-        삼호선 = new Line(3L, "삼호선", "bg-red-600");
+        삼호선 = new Line(3L, "삼호선", "bg-red-600", 300);
         삼호선.addSection(new Section(교대역, 남부터미널역, 10));
         삼호선.addSection(new Section(남부터미널역, 양재역, 10));
         삼호선.addSection(new Section(양재역, 매봉역, 8));
         삼호선.addSection(new Section(매봉역, 도곡역, 7));
-        신분당선 = new Line(4L, "신분당선", "bg-red-600");
+        신분당선 = new Line(4L, "신분당선", "bg-red-600", 400);
         신분당선.addSection(new Section(강남역, 양재역, 10));
         신분당선.addSection(new Section(양재역, 양재시민의숲역, 10));
-        분당선 = new Line(5L, "분당선", "bg-red-600");
+        분당선 = new Line(5L, "분당선", "bg-red-600", 500);
         분당선.addSection(new Section(선릉역, 한티역, 6));
         분당선.addSection(new Section(한티역, 도곡역, 5));
     }
 
-    @DisplayName("최단 경로를 조회힌다.")
+    @DisplayName("최단 경로와 거리, 최대 추가 요금을 조회힌다.")
     @Test
     void findPath() {
         // when
@@ -89,6 +89,7 @@ class PathFinderTest {
         // then
         assertThat(path.getStations()).containsExactly(양재시민의숲역, 양재역, 매봉역, 도곡역, 한티역, 선릉역);
         assertThat(path.getDistance()).isEqualTo(36);
+        assertThat(path.getMaxExtraFare()).isEqualTo(500);
     }
 
     @DisplayName("연결되지 않은 출발역과 도착역의 최단 경로는 조회할 수 없다.")

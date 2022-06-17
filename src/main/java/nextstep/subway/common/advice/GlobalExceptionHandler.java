@@ -1,30 +1,24 @@
-package nextstep.subway;
+package nextstep.subway.common.advice;
 
+import nextstep.subway.auth.exception.AuthorizationException;
+import nextstep.subway.common.exception.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice(basePackages = {"nextstep.subway"})
-public class ApiExceptionAdvice {
+public class GlobalExceptionHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+    @ExceptionHandler(value = {IllegalArgumentException.class, IllegalStateException.class, ValidationException.class})
+    public ResponseEntity<String> handleValidationException(RuntimeException e) {
         if (StringUtils.hasText(e.getMessage())) {
-            log.error("handleIllegalArgumentException", e);
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-        return handleException(e);
-    }
-
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<String> handleIllegalStateException(IllegalStateException e) {
-        if (StringUtils.hasText(e.getMessage())) {
-            log.error("handleIllegalStateException", e);
+            log.error("handleValidationException", e);
             return ResponseEntity.badRequest().body(e.getMessage());
         }
         return handleException(e);
@@ -34,6 +28,12 @@ public class ApiExceptionAdvice {
     public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
         log.error("handleDataIntegrityViolationException", e);
         return ResponseEntity.badRequest().build();
+    }
+
+    @ExceptionHandler(AuthorizationException.class)
+    public ResponseEntity<String> handleAuthorizationException(AuthorizationException e) {
+        log.error("handleAuthorizationException", e);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @ExceptionHandler

@@ -1,12 +1,13 @@
 package nextstep.subway.path.application;
 
+import nextstep.subway.line.application.LineService;
 import nextstep.subway.line.domain.Line;
-import nextstep.subway.line.domain.LineRepository;
 import nextstep.subway.line.domain.Section;
 import nextstep.subway.path.dto.PathResponse;
+import nextstep.subway.station.application.StationService;
 import nextstep.subway.station.domain.Station;
-import nextstep.subway.station.domain.StationRepository;
 import nextstep.subway.station.dto.StationResponse;
+import nextstep.subway.station.exception.StationNotFoundException;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,21 +19,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 class PathServiceTest {
     @InjectMocks
     private PathService pathService;
     @Mock
-    private StationRepository stationRepository;
+    private StationService stationService;
     @Mock
-    private LineRepository lineRepository;
+    private LineService lineService;
 
     private Station 시청역;
     private Station 서울역;
@@ -104,9 +104,9 @@ class PathServiceTest {
     @Test
     void findPath() {
         // given
-        when(stationRepository.findById(양재시민의숲역.getId())).thenReturn(Optional.of(양재시민의숲역));
-        when(stationRepository.findById(선릉역.getId())).thenReturn(Optional.of(선릉역));
-        when(lineRepository.findAll()).thenReturn(Arrays.asList(일호선, 이호선, 삼호선, 신분당선, 분당선));
+        List<Station> stations = Arrays.asList(양재시민의숲역, 선릉역);
+        given(stationService.findStationsByIdIn(Arrays.asList(양재시민의숲역.getId(), 선릉역.getId()))).willReturn(stations);
+        given(lineService.findAll()).willReturn(Arrays.asList(일호선, 이호선, 삼호선, 신분당선, 분당선));
 
         // when
         PathResponse pathResponse = pathService.findPath(양재시민의숲역.getId(), 선릉역.getId());
@@ -129,9 +129,8 @@ class PathServiceTest {
     @Test
     void findPathWithNotLinkedStations() {
         // given
-        when(stationRepository.findById(강남역.getId())).thenReturn(Optional.of(강남역));
-        when(stationRepository.findById(서울역.getId())).thenReturn(Optional.of(서울역));
-        when(lineRepository.findAll()).thenReturn(Arrays.asList(일호선, 이호선, 삼호선, 신분당선, 분당선));
+        given(stationService.findStationsByIdIn(Arrays.asList(서울역.getId(), 강남역.getId()))).willReturn(Arrays.asList(서울역, 강남역));
+        given(lineService.findAll()).willReturn(Arrays.asList(일호선, 이호선, 삼호선, 신분당선, 분당선));
 
         // when
         ThrowableAssert.ThrowingCallable throwingCallable = () -> pathService.findPath(서울역.getId(), 강남역.getId());
@@ -144,13 +143,13 @@ class PathServiceTest {
     @Test
     void findPathWithNotExistsStations() {
         // given
-        when(stationRepository.findById(서울역.getId())).thenReturn(Optional.of(서울역));
+        given(stationService.findStationsByIdIn(Arrays.asList(서울역.getId(), 9999L))).willThrow(StationNotFoundException.class);
 
         // when
         ThrowableAssert.ThrowingCallable throwingCallable = () -> pathService.findPath(서울역.getId(), 9999L);
 
         // then
-        assertThatThrownBy(throwingCallable).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(StationNotFoundException.class);
     }
 
     private void 최단_경로_확인됨(PathResponse pathResponse, List<Station> expectedStations) {
